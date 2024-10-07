@@ -1,0 +1,9 @@
+[submodule "examples/include/libft"]
+	path = examples/include/libft
+	url = git@github.com:andoitzcp/libft.git
+[submodule "include/libft"]
+	path = include/libft
+	url = git@github.com:andoitzcp/libft.git
+[submodule "include/ft_printf"]
+	path = include/ft_printf
+	url = git@github.com:andoitzcp/ft_printf.git
