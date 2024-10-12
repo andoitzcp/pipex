@@ -10,6 +10,7 @@
 #include "../include/ft_printf/src/ft_printf.h"
 
 #define BINPATH "/bin/"
+#define CATPATH "/bin/cat"
 #define RDEND 0
 #define WREND 1
 #define IPIPE 0
@@ -23,6 +24,12 @@ typedef struct s_cmd
     struct s_cmd *next;
 } t_cmd;
 
+typedef struct s_metad
+{
+    struct s_cmd **head;
+    char *ifile;
+    char *ofile;
+} t_metad;
 
 void ft_printcmdnode(t_cmd *cmd);
 void ft_printcmdlist(t_cmd **head);

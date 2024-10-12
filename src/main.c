@@ -1,5 +1,7 @@
 #include "pipex.h"
 #include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 void ft_checkargs(int argc, char **argv)
 {
@@ -42,36 +44,41 @@ t_cmd *ft_parsecmd(char *scmd)
 
     cmd = malloc(sizeof(t_cmd));
     if (!cmd)
+    {
+        perror("Malloc allocation:");
         exit(EXIT_FAILURE);
+    }
     cmd->argv = ft_split(scmd, ' ');
     dstlen = ft_strlen(cmd->argv[0]) + ft_strlen(BINPATH) + 1;
     cmd->cmd = ft_calloc(dstlen, sizeof(char));
+    if (!cmd->cmd)
+    {
+        perror("Malloc allocation:");
+        exit(EXIT_FAILURE);
+    }
     ft_strlcat(cmd->cmd, BINPATH, dstlen);
     ft_strlcat(cmd->cmd, cmd->argv[0], dstlen);
     cmd->env = NULL;
     return (cmd);
 }
 
-t_cmd *ft_buildfirstnode(char *infile, char *cmd1)
+t_cmd *ft_buildfirstnode(char *infile)
 {
+    char *s;
+    int dstlen;
     t_cmd *cmd;
-    char **new_argv;
-    int i;
 
-    cmd = ft_parsecmd(cmd1);
-    i = 0;
-    while(cmd->argv[i])
-        i++;
-    new_argv = ft_calloc(i + 2, sizeof(char **));
-    i = 0;
-    while(cmd->argv[i])
+    dstlen = ft_strlen("cat ") + ft_strlen(infile) + 1;
+    s = ft_calloc(dstlen, sizeof(char));
+    if (!s)
     {
-        new_argv[i] = cmd->argv[i];
-        i++;
+        perror("Malloc allocation:");
+        exit(EXIT_FAILURE);
     }
-    new_argv[i] = infile;
-    i = 0;
-    cmd->argv = new_argv;
+    ft_strlcat(s, "cat ", dstlen);
+    ft_strlcat(s, infile, dstlen);
+    cmd = ft_parsecmd(s);
+    free(s);
     return (cmd);
 }
 
@@ -80,10 +87,10 @@ t_cmd **ft_buildcmdlist(t_cmd **head, int argc, char **argv)
     t_cmd *node;
     int i;
 
-    node = ft_buildfirstnode(argv[1], argv[2]);
+    node = ft_buildfirstnode(argv[1]);
     *head = node;
-    i = 2;
-    while (++i < argc)
+    i = 1;
+    while (++i < argc - 1)
     {
         node->next = ft_parsecmd(argv[i]);
         node = node->next;
@@ -92,69 +99,100 @@ t_cmd **ft_buildcmdlist(t_cmd **head, int argc, char **argv)
     return (head);
 }
 
-void ft_cleanup(t_cmd *cmd)
+void ft_cleanup(t_metad *metad)
 {
-    printf("Esto no deberia imprimirse: %s\n", cmd->cmd);
+    t_cmd *cmd;
+    t_cmd *tmp;
+
+    cmd = *(metad->head);
+    while (cmd)
+    {
+        free(cmd->cmd);
+        ft_free2parray(cmd->argv);
+        tmp = cmd;
+        cmd = cmd->next;
+        free(tmp);
+    }
+    free(metad->head);
+
 }
 
-void ft_execcmd(t_cmd *cmd)
+void ft_childproc(t_cmd *cmd, int fd[2][2], char *ofile)
+{
+    int fd_fileout;
+
+    if (fd[IPIPE][RDEND] != -1)
+    {
+        dup2(fd[IPIPE][RDEND], STDIN_FILENO);
+        close(fd[IPIPE][RDEND]);
+    }
+    if (cmd->next)
+        dup2(fd[OPIPE][WREND], STDOUT_FILENO);
+    else
+    {
+        fd_fileout = open(ofile, O_CREAT | O_WRONLY, 0644);
+        dup2(fd_fileout, STDOUT_FILENO);
+        close(fd_fileout);
+    }
+    close(fd[OPIPE][RDEND]);
+    execve(cmd->cmd, cmd->argv, cmd->env);
+    close(fd[OPIPE][WREND]);
+    if (!cmd->next)
+        close(fd_fileout);
+}
+
+void ft_execcmd(t_cmd *cmd, t_metad *metad)
 {
     static int fd[2][2] = {{-1, -1}, {-1, -1}};
-    int fd_fileout;
     pid_t pid;
 
     if (cmd->next)
     {
         if (pipe(fd[OPIPE]) == -1)
-            ft_cleanup(cmd);
+            ft_cleanup(metad);
     }
     if ((pid = fork()) == -1)
-        ft_cleanup(cmd);
+        ft_cleanup(metad);
     if (pid == 0)
-    {
-        if (fd[IPIPE][RDEND] != -1)
-        {
-            dup2(fd[IPIPE][RDEND], STDIN_FILENO);
-            close(fd[IPIPE][RDEND]);
-        }
-        if (cmd->next)
-            dup2(fd[OPIPE][WREND], STDOUT_FILENO);
-        else
-        {
-            fd_fileout = open("outfile", O_CREAT | O_WRONLY);
-            dup2(fd[OPIPE][WREND], fd_fileout);
-        }
-        close(fd[OPIPE][RDEND]);
-        execve(cmd->cmd, cmd->argv, cmd->env);
-        close(fd[OPIPE][WREND]);
-    }
+        ft_childproc(cmd, fd, metad->ofile);
     fd[IPIPE][RDEND] = fd[OPIPE][RDEND];
     fd[IPIPE][WREND] = fd[OPIPE][WREND];
     close(fd[IPIPE][WREND]);
     waitpid(pid, NULL, 0);
 }
 
+t_metad ft_initmetad(int argc, char **argv)
+{
+    t_metad metad;
+
+    metad.head = malloc(sizeof(t_cmd **));
+    if (!metad.head)
+    {
+        perror("Malloc allocation:");
+        exit(EXIT_FAILURE);
+    }
+    metad.ifile = argv[1];
+    metad.ofile = argv[argc - 1];
+    return (metad);
+}
+
 int main(int argc, char **argv)
 {
-    t_cmd *head;
+    t_metad metad;
+    t_cmd *cmd;
 
     //ft_checkargs(argc, argv);
     //ft_checkiofiles(argv[1], argv[4]);
-    ft_buildcmdlist(&head, argc, argv);
-    //ft_printcmdlist(&head);
-    while (head)
+    metad = ft_initmetad(argc, argv);
+    metad.head = ft_buildcmdlist(metad.head, argc, argv);
+    //ft_printcmdlist(metad.head);
+    cmd = *(metad.head);
+    while (cmd)
     {
-        ft_execcmd(head);
-        head = head->next;
+        ft_execcmd(cmd, &metad);
+        cmd = cmd->next;
     }
-    //head = head->next;
-    //ft_execcmd(head->next);
-    //while (head)
-    //{
-        //ft_execcmd(head);
-        ////printf("node: %p\tcmd: %s\targv[0]:%s\n", head, head->cmd, head->argv[0]);
-        //head = head->next;
-    //}
+    ft_cleanup(&metad);
     return (0);
 
 }
