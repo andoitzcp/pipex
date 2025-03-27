@@ -42,7 +42,7 @@ WHITE = \033[0;97m
 
 #Sources
 
-SRC_FILES	=	main debugging
+SRC_FILES	=	main utils debugging
 
 
 SRC 		= 	$(addprefix $(SRC_DIR), $(addsuffix .c, $(SRC_FILES)))

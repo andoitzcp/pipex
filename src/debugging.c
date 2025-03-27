@@ -14,7 +14,6 @@ void ft_printcmdnode(t_cmd *cmd)
         ft_printf("\t\t%d-> %s\n", j, cmd->argv[j]);
         j++;
     }
-    ft_printf("\tEnvironment: %p\n", cmd->env);
     ft_printf("\tNext cmd: %p\n", cmd->next);
     i++;
 }
