@@ -6,11 +6,11 @@
 /*   By: andoitzcp <marvin@42.fr>                   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 12:52:17 by andoitzcp         #+#    #+#             */
-/*   Updated: 2025/04/02 12:53:58 by andoitzcp        ###   ########.fr       */
+/*   Updated: 2025/04/02 17:48:35 by acampo-p@        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
+#include "pipex.h"
 
 int	main(void)
 {
