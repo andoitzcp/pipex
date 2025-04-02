@@ -1,43 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   debugging.c                                        :+:      :+:    :+:   */
+/*   parse.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: andoitzcp <marvin@42.fr>                   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/02 12:50:47 by andoitzcp         #+#    #+#             */
-/*   Updated: 2025/04/02 12:51:49 by andoitzcp        ###   ########.fr       */
+/*   Created: 2025/04/02 13:07:28 by andoitzcp         #+#    #+#             */
+/*   Updated: 2025/04/02 13:07:53 by andoitzcp        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	ft_printcmdnode(t_cmd *cmd)
+t_cmd	*ft_buildcmdnode(char *scmd)
 {
-	static int	i = 0;
-	int			j;
+	t_cmd	*cmd;
 
-	ft_printf("Cmd n=%d,\tp=%p\n", i, cmd);
-	ft_printf("\tCommand: %s\n", cmd->cmd);
-	ft_printf("\tArguments:\n");
-	j = 0;
-	while (cmd->argv[j])
-	{
-		ft_printf("\t\t%d-> %s\n", j, cmd->argv[j]);
-		j++;
-	}
-	ft_printf("\tNext cmd: %p\n", cmd->next);
-	i++;
+	cmd = malloc(sizeof(t_cmd));
+	if (!cmd)
+		handle_error(NULL, "ft_buildcmdnode", errno);
+	cmd->argv = ft_split(scmd, ' ');
+	cmd->cmd = *(cmd->argv);
+	cmd->next = NULL;
+	return (cmd);
 }
 
-void	ft_printcmdlist(t_cmd **head)
+t_cmd	**ft_buildcmdlist(t_cmd **head, char **argv)
 {
 	t_cmd	*node;
 
-	node = *head;
-	while (node)
-	{
-		ft_printcmdnode(node);
-		node = node->next;
-	}
+	node = ft_buildcmdnode(argv[2]);
+	*head = node;
+	node->next = ft_buildcmdnode(argv[3]);
+	node = node->next;
+	return (head);
 }

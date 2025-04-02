@@ -6,7 +6,7 @@
 #    By: acampo-p <acampo-p@student.42urduli>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/19 09:35:35 by acampo-p          #+#    #+#              #
-#    Updated: 2023/01/19 09:44:01 by acampo-p         ###   ########.fr        #
+#    Updated: 2025/04/02 13:30:04 by andoitzcp        ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -42,7 +42,7 @@ WHITE = \033[0;97m
 
 #Sources
 
-SRC_FILES	=	main utils debugging
+SRC_FILES	=	main utils handleredirs parse debugging
 BONUS_FILES	=	helloworld
 
 
@@ -58,7 +58,7 @@ OBJF		=	.cache_exists
 all:		$(NAME)
 
 $(NAME):	$(OBJ) $(LIBFT_A) $(FT_PRINTF_A) $(HEADERS)
-			@$(CC) $(CFLAGS) $(OBJ) -L$(LIBFT) -lft -L$(FT_PRINTF) -lftprintf -o $(NAME) -lXext -lX11
+			@$(CC) $(CFLAGS) $(OBJ) $(HEADERS) -L$(LIBFT) -lft -L$(FT_PRINTF) -lftprintf -o $(NAME) -lXext -lX11
 			@echo "$(GREEN)$(NAME) compiled!$(DEF_COLOR)"
 
 bonus:		$(BOBJ) $(LIBFT_A) $(FT_PRINTF_A) $(HEADERS)

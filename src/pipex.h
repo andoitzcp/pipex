@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pipex.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: andoitzcp <marvin@42.fr>                   +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/02 12:50:14 by andoitzcp         #+#    #+#             */
+/*   Updated: 2025/04/02 13:15:26 by andoitzcp        ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #define PIPEX_H_
 
 #include <stdlib.h>
@@ -21,26 +33,34 @@
 
 typedef struct s_cmd
 {
-    char *cmd;
-    char **argv;
-    struct s_cmd *next;
-} t_cmd;
+	char			*cmd;
+	char			**argv;
+	struct s_cmd	*next;
+}	t_cmd;
 
 typedef struct s_metad
 {
-    struct s_cmd **head;
-    char *ifile;
-    char *ofile;
-    char **env;
-    char *path;
-} t_metad;
+	struct s_cmd	**head;
+	char			*ifile;
+	char			*ofile;
+	char			**env;
+	char			*path;
+}	t_metad;
 
-void ft_printcmdnode(t_cmd *cmd);
-void ft_printcmdlist(t_cmd **head);
+void	ft_printcmdnode(t_cmd *cmd);
+void	ft_printcmdlist(t_cmd **head);
 
 /* utils */
-char *get_envvar(char *var, char **env);
-char *get_cmdpath(t_cmd *cmd, char **env);
-void ft_cleanup(t_metad *metad);
-t_metad ft_initmetad(int argc, char **argv, char **env);
-int handle_error(t_metad *md, char *s, int errornumber);
+char	*get_envvar(char *var, char **env);
+char	*get_cmdpath(t_cmd *cmd, char **env);
+void	ft_cleanup(t_metad *metad);
+t_metad	ft_initmetad(int argc, char **argv, char **env);
+int		handle_error(t_metad *md, char *s, int errornumber);
+
+/* Handle redirs */
+void	handle_left_redir(t_metad *md);
+int		handle_right_redir(t_metad *md);
+
+/* Parse */
+t_cmd	*ft_buildcmdnode(char *scmd);
+t_cmd	**ft_buildcmdlist(t_cmd **head, char **argv);
