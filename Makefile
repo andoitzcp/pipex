@@ -43,10 +43,13 @@ WHITE = \033[0;97m
 #Sources
 
 SRC_FILES	=	main utils debugging
+BONUS_FILES	=	helloworld
 
 
 SRC 		= 	$(addprefix $(SRC_DIR), $(addsuffix .c, $(SRC_FILES)))
+BSRC 		= 	$(addprefix $(SRC_DIR), $(addsuffix .c, $(BONUS_FILES)))
 OBJ 		= 	$(addprefix $(OBJ_DIR), $(addsuffix .o, $(SRC_FILES)))
+BOBJ 		= 	$(addprefix $(OBJ_DIR), $(addsuffix .o, $(BONUS_FILES)))
 
 ###
 
@@ -56,6 +59,10 @@ all:		$(NAME)
 
 $(NAME):	$(OBJ) $(LIBFT_A) $(FT_PRINTF_A) $(HEADERS)
 			@$(CC) $(CFLAGS) $(OBJ) -L$(LIBFT) -lft -L$(FT_PRINTF) -lftprintf -o $(NAME) -lXext -lX11
+			@echo "$(GREEN)$(NAME) compiled!$(DEF_COLOR)"
+
+bonus:		$(BOBJ) $(LIBFT_A) $(FT_PRINTF_A) $(HEADERS)
+			@$(CC) $(CFLAGS) $(BOBJ) -L$(LIBFT) -lft -L$(FT_PRINTF) -lftprintf -o $(NAME) -lXext -lX11
 			@echo "$(GREEN)$(NAME) compiled!$(DEF_COLOR)"
 
 $(LIBFT_A):
@@ -92,5 +99,3 @@ re:			fclean all
 
 norm:
 			@norminette $(SRC) $(INCLUDE) $(LIBFT) $(FT_PRINTF) | grep -v Norme -B1 || true
-
-.PHONY:		all clean fclean re norm

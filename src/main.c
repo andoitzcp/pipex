@@ -8,34 +8,14 @@ void ft_checkargs(int argc, char **argv)
 {
 	int i;
 	if (argc != 5)
-    {
-        perror("Not a valid number of arguments\n");
-        exit(EXIT_FAILURE);
-    }
+        handle_error(NULL, "ft_checkargs", EXIT_FAILURE);
     i = 0;
     while (i++ < argc - 1)
     {
         if (*argv[i] == '\0')
-        {
-            perror("Argument %d must not be null");
-            exit(EXIT_FAILURE);
-        }
+            handle_error(NULL, "ft_checkargs", EXIT_FAILURE);
     }
     return ;
-}
-
-void ft_checkiofiles(char *ifile, char *ofile)
-{
-	if (access(ifile, R_OK) == -1)
-    {
-        perror("Error during io file checking: ");
-        exit(EXIT_FAILURE);
-    }
-    if (access(ofile, W_OK) == -1)
-    {
-        perror("Error during io file checking: ");
-        exit(EXIT_FAILURE);
-    }
 }
 
 t_cmd *ft_buildcmdnode(char *scmd)
@@ -44,10 +24,7 @@ t_cmd *ft_buildcmdnode(char *scmd)
 
     cmd = malloc(sizeof(t_cmd));
     if (!cmd)
-    {
-        perror("Malloc allocation:");
-        exit(EXIT_FAILURE);
-    }
+        handle_error(NULL, "ft_buildcmdnode", errno);
     cmd->argv = ft_split(scmd, ' ');
     cmd->cmd = *(cmd->argv);
 	cmd->next = NULL;
@@ -71,38 +48,34 @@ void ft_childproc(t_cmd *cmd, int fd[2][2], t_metad *md)
     int fd_fileout;
     int fd_filein;
 
-	printf("flag000: %s\n", cmd->cmd);
-	printf("flag00: %d\n", fd[OPIPE][RDEND]);
-	printf("flag01: %d\n", fd[OPIPE][WREND]);
 	if (fd[IPIPE][RDEND] == -1)
 	{
-		printf("flag001: %s\n", cmd->cmd);
         fd_filein = open(md->ifile, O_RDONLY, 0777);
+        if (fd_filein == -1)
+            handle_error(md, "ft_childproc", errno);
+
 		dup2(fd_filein, STDIN_FILENO);
-		printf("flag02: %d\n", fd[IPIPE][RDEND]);
-		printf("flag03: %d\n", fd[IPIPE][WREND]);
-        /* close(fd_filein); */
 	}
 	else if (fd[IPIPE][RDEND] != -1)
     {
-		printf("flag002: %s\n", cmd->cmd);
         dup2(fd[IPIPE][RDEND], STDIN_FILENO);
         close(fd[IPIPE][RDEND]);
     }
     if (cmd->next)
 	{
-		printf("flag003: %s\n", cmd->cmd);
         dup2(fd[OPIPE][WREND], STDOUT_FILENO);
 	}
     else
     {
-		printf("flag004: %s\n", cmd->cmd);
         fd_fileout = open(md->ofile, O_CREAT | O_WRONLY | O_TRUNC, 0777);
+        if (fd_fileout == -1)
+            handle_error(md, "ft_childproc", errno);
         dup2(fd_fileout, STDOUT_FILENO);
         close(fd_fileout);
     }
     close(fd[OPIPE][RDEND]);
-    execve(cmd->cmd, cmd->argv, md->env);
+    if (execve(get_cmdpath(cmd, md->env), cmd->argv, md->env) == -1)
+        handle_error(md, "ft_childproc", errno);
     close(fd[OPIPE][WREND]);
     if (!cmd->next)
         close(fd_fileout);
@@ -116,10 +89,10 @@ void ft_execcmd(t_cmd *cmd, t_metad *md)
     if (cmd->next)
     {
         if (pipe(fd[OPIPE]) == -1)
-            ft_cleanup(md);
+            handle_error(md, "ft_execcmd", errno);
     }
     if ((pid = fork()) == -1)
-        ft_cleanup(md);
+        handle_error(md, "ft_execcmd", errno);
     if (pid == 0)
         ft_childproc(cmd, fd, md);
     fd[IPIPE][RDEND] = fd[OPIPE][RDEND];
@@ -135,7 +108,7 @@ int main(int argc, char **argv, char **env)
     t_cmd *cmd;
 
     ft_checkargs(argc, argv);
-    ft_checkiofiles(argv[1], argv[4]);
+    //ft_checkiofiles(argv[1], argv[4]);
     metad = ft_initmetad(argc, argv, env);
     metad.head = ft_buildcmdlist(metad.head, argv);
     //ft_printcmdlist(metad.head);

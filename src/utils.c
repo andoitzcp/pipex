@@ -1,10 +1,15 @@
 #include "pipex.h"
 
-/* char *get_path(t_cmd *cmd, char **env) */
-/* { */
 
-
-/* } */
+int handle_error(t_metad *md, char *s, int errornumber)
+{
+    perror(s);
+    //ft_printf("%s:%s", s, strerror(errornumber));
+    if (md)
+        ft_cleanup(md);
+    exit(errornumber);
+    //exit(EXIT_FAILURE);
+}
 
 char *get_envvar(char *var, char **env)
 {

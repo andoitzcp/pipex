@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <errno.h>
+#include <string.h>
 #include "../include/libft/libft.h"
 #include "../include/ft_printf/src/ft_printf.h"
 
@@ -41,3 +43,4 @@ char *get_envvar(char *var, char **env);
 char *get_cmdpath(t_cmd *cmd, char **env);
 void ft_cleanup(t_metad *metad);
 t_metad ft_initmetad(int argc, char **argv, char **env);
+int handle_error(t_metad *md, char *s, int errornumber);
